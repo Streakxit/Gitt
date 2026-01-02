@@ -1,1 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Streak.xit</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #020617;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 15px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .pedido {
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .aprobado {
+      border-color: #22c55e;
+    }
+    button {
+      padding: 8px 12px;
+      margin-top: 8px;
+      margin-right: 5px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .aprobar {
+      background: #22c55e;
+      color: black;
+    }
+    .eliminar {
+      background: #ef4444;
+      color: white;
+    }
+  </style>
+</head>
+<body>
 
+<h1>👨‍💼 Panel Admin - Streak.xit</h1>
+
+<div id="pedidos">Cargando pedidos...</div>
+
+<script>
+async function cargarPedidos() {
+  const res = await fetch("/pedidos");
+  const data = await res.json();
+
+  if (!data.length) {
+    document.getElementById("pedidos").innerHTML = "No hay pedidos";
+    return;
+  }
+
+  document.getElementById("pedidos").innerHTML = "";
+
+  data.forEach(p => {
+    const div = document.createElement("div");
+    div.className = "pedido " + (p.estado === "aprobado" ? "aprobado" : "");
+    div.innerHTML = `
+      <p><strong>ID:</strong> ${p.id}</p>
+      <p><strong>Email:</strong> ${p.email}</p>
+      <p><strong>Estado:</strong> ${p.estado}</p>
+      <p><strong>Archivo:</strong>
+        <a href="/uploads/${p.archivo}" target="_blank">Ver comprobante</a>
+      </p>
+      ${p.estado !== "aprobado"
+        ? `<button class="aprobar" onclick="aprobar(${p.id})">Aprobar</button>`
+        : ""}
+      <button class="eliminar" onclick="eliminarPedido(${p.id})">Eliminar</button>
+    `;
+    document.getElementById("pedidos").appendChild(div);
+  });
+}
+
+async function aprobar(id) {
+  if (!confirm("¿Aprobar pedido?")) return;
+  await fetch("/aprobar/" + id, { method: "POST" });
+  cargarPedidos();
+}
+
+async function eliminarPedido(id) {
+  if (!confirm("¿Eliminar pedido?")) return;
+  await fetch("/pedido/" + id, { method: "DELETE" });
+  cargarPedidos();
+}
+
+cargarPedidos();
+</script>
+
+</body>
+</html>
